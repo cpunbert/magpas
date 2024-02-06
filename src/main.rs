@@ -1,7 +1,6 @@
 use std::env;
 use rand::Rng;
 
-
 enum PasswordStrength{
     LowerCase, //lower case letters
     UpperCase, // lower case + upper case letters
@@ -28,48 +27,35 @@ fn generate_password(pass_len: i32,pass_strength: PasswordStrength) -> String{
                             ABCDEFGHIJKLMNOPQRSTUVWXYZ\
                             0123456789!@#$%^&*()_+-={}[]|:;<>,.?/";
 
-
     let mut rng = rand::thread_rng();
 
 
-    match pass_strength{
+    let password_set = match pass_strength {
         PasswordStrength::LowerCase =>{
-            let password: String = (0..pass_len)
-                .map(|_|{
-                    let n = rng.gen_range(0..LOWERCASE.len());
-                    LOWERCASE[n] as char
-                })
-                .collect();
-            return password
+          LOWERCASE
         },
         PasswordStrength::UpperCase =>{
-            let password: String = (0..pass_len)
-                .map(|_|{
-                let n = rng.gen_range(0..UPPERCASE.len());
-                    UPPERCASE[n] as char
-                })
-                .collect();
-            return password
+            UPPERCASE
         },
         PasswordStrength::Numbers =>{
-            let password: String = (0..pass_len)
-                .map(|_|{
-                    let n = rng.gen_range(0..NUMBERS.len());
-                    NUMBERS[n] as char
-                })
-                .collect();
-            return password
+            NUMBERS
         },
         PasswordStrength::Symbols =>{
-            let password: String = (0..pass_len)
-                .map(|_|{
-                    let n = rng.gen_range(0..SYMBOLS.len());
-                    SYMBOLS[n] as char
-                })
-                .collect();
-            return password
+            SYMBOLS
         }
-    }
+
+    };
+
+    let password: String = (0..pass_len)
+        .map(|_|{
+            let n = rng.gen_range(0..password_set.len());
+            password_set[n] as char
+        })
+        .collect();
+    return password
+
+
+
 }
 
 fn parse_input(){
