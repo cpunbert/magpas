@@ -17,31 +17,27 @@ fn main() {
 
 
 fn generate_password(pass_len: i32,pass_strength: PasswordStrength) -> String{
-    const LOWERCASE:  &[u8] = b"abcdefghijklmnopqrstuwxyz";
-    const UPPERCASE:  &[u8] = b"abcdefghijklmnopqrstuwvxyz\
-                                ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-    const NUMBERS: &[u8] = b"abcdefghijklmnopqrstuwvxyz\
-                            ABCDEFGHIJKLMNOPQRSTUVWXYZ\
-                            0123456789";
-    const SYMBOLS: &[u8] = b"bcdefghijklmnopqrstuwvxyz\
-                            ABCDEFGHIJKLMNOPQRSTUVWXYZ\
-                            0123456789!@#$%^&*()_+-={}[]|:;<>,.?/";
 
     let mut rng = rand::thread_rng();
 
 
-    let password_set = match pass_strength {
+    let password_set:&[u8] = match pass_strength {
         PasswordStrength::LowerCase =>{
-          LOWERCASE
+            b"abcdefghijklmnopqrstuwxyz"
         },
         PasswordStrength::UpperCase =>{
-            UPPERCASE
+            b"abcdefghijklmnopqrstuwvxyz\
+            ABCDEFGHIJKLMNOPQRSTUVWXYZ"
         },
         PasswordStrength::Numbers =>{
-            NUMBERS
+            b"abcdefghijklmnopqrstuwvxyz\
+            ABCDEFGHIJKLMNOPQRSTUVWXYZ\
+            0123456789"
         },
         PasswordStrength::Symbols =>{
-            SYMBOLS
+            b"bcdefghijklmnopqrstuwvxyz\
+            ABCDEFGHIJKLMNOPQRSTUVWXYZ\
+            0123456789!@#$%^&*()_+-={}[]|:;<>,.?/"
         }
 
     };
