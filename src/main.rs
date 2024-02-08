@@ -1,22 +1,21 @@
-use std::env;
 use crossterm::{
     event::{self, KeyCode, KeyEventKind},
     terminal::{disable_raw_mode, enable_raw_mode, EnterAlternateScreen, LeaveAlternateScreen}, ExecutableCommand, execute};
 use ratatui::{Frame, prelude::{CrosstermBackend, Stylize, Terminal}, widgets::Paragraph};
 use std::io::{stdout, Result};
-use rand::Rng;
+use crate::app::App;
 
 
-enum PasswordStrength{
-    LowerCase, //lower case letters
-    UpperCase, // lower case + upper case letters
-    Numbers, // upper + lower case  + numbers
-    Symbols //upper + lower + numbers + symbols
-}
-struct Password{
-    password: String,
-    exit: bool,
-}
+pub mod app;
+pub mod event;
+pub mod ui;
+pub mod tui;
+pub mod update;
+
+
+
+
+
 
 fn main()-> Result<()>{
     startup()?;
@@ -28,7 +27,7 @@ fn main()-> Result<()>{
 
 fn run() -> Result<()> {
     let mut terminal = Terminal::new(CrosstermBackend::new(stdout()))?;
-    let mut password= Password{password: generate_password(24, PasswordStrength::Symbols), exit: false};
+    let mut password= App{password: generate_password(24, PasswordStrength::Symbols), exit: false};
 
     loop{
         terminal.draw(|frame|{
@@ -58,7 +57,7 @@ fn shutdown() -> Result<()>{
     Ok(())
 }
 
-fn ui(password: &Password, frame: &mut Frame){
+fn ui(password: &App, frame: &mut Frame){
     frame.render_widget(
         Paragraph::new(format!("password: {}", password.password)).green().on_light_magenta(),
         frame.size(),
@@ -85,39 +84,5 @@ fn update(password: &mut Password) ->Result<()>{
 }
 
 
-fn generate_password(pass_len: i32,pass_strength: PasswordStrength) -> String{
 
-    let mut rng = rand::thread_rng();
-    let password_set:&[u8] = match pass_strength {
-        PasswordStrength::LowerCase =>
-            b"abcdefghijklmnopqrstuwxyz"
-        ,
-        PasswordStrength::UpperCase =>
-            b"abcdefghijklmnopqrstuwvxyz\
-            ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        ,
-        PasswordStrength::Numbers =>
-            b"abcdefghijklmnopqrstuwvxyz\
-            ABCDEFGHIJKLMNOPQRSTUVWXYZ\
-            0123456789"
-        ,
-        PasswordStrength::Symbols =>
-            b"bcdefghijklmnopqrstuwvxyz\
-            ABCDEFGHIJKLMNOPQRSTUVWXYZ\
-            0123456789!@#$%^&*()_+-={}[]|:;<>,.?/"
-
-
-    };
-
-    let password: String = (0..pass_len)
-        .map(|_|{
-            let n = rng.gen_range(0..password_set.len());
-            password_set[n] as char
-        })
-        .collect();
-    return password
-
-
-
-}
 
