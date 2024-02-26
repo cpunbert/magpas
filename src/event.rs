@@ -10,7 +10,7 @@ pub enum Event {
     Resize(u16, u16),
 }
 
-#[derive(Debug)]
+
 pub struct EventHandler {
 
     #[allow(dead_code)]

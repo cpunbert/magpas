@@ -10,14 +10,14 @@ pub fn render(app: &mut App, f: &mut Frame){
     f.render_widget(
         Paragraph::new(format!(
             "
-            Press 1 to generate new password \n\
-            Press q to quit\n\
+            Press g or enter to generate new password \n\
+            Press q, Esc or Ctrl-C to quit\n\
             Password: {}
             ", app.password
         ))
             .block(
                 Block::default()
-                    .title("Password App")
+                    .title("MAGPAS")
                     .title_alignment(Alignment::Center)
                     .borders(Borders::ALL)
                     .border_type(BorderType::Rounded),
