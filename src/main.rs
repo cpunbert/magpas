@@ -4,6 +4,8 @@ pub mod ui;
 pub mod tui;
 pub mod update;
 
+pub mod password;
+
 use app::App;
 use anyhow::Result;
 use std::io::stderr;

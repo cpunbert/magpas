@@ -17,7 +17,7 @@ pub fn render(app: &mut App, f: &mut Frame){
         ))
             .block(
                 Block::default()
-                    .title("MAGPAS")
+                    .title("MagPas")
                     .title_alignment(Alignment::Center)
                     .borders(Borders::ALL)
                     .border_type(BorderType::Rounded),
