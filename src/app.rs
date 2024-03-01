@@ -43,10 +43,10 @@ impl App{
         if let Some(edit_mode) = &self.currently_editing{
             match edit_mode {
                 CurrentlyEditing::Login => {
-                    self.currently_editing = Some(CurrentlyEditing::Login)
+                    self.currently_editing = Some(CurrentlyEditing::Password)
                 }
                 CurrentlyEditing::Password => {
-                    self.currently_editing = Some(CurrentlyEditing::Password)
+                    self.currently_editing = Some(CurrentlyEditing::Login)
                 }
             };
         }else {

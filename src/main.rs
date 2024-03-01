@@ -4,8 +4,9 @@ use crossterm::terminal::{enable_raw_mode, disable_raw_mode, LeaveAlternateScree
 use std::io;
 use ratatui::backend::{Backend, CrosstermBackend};
 use ratatui::Terminal;
-use serde::de::Error;
+use std::{error::Error,};
 use crate::app::{App, CurrentlyEditing, CurrentScreen};
+use crate::ui::ui;
 
 mod app;
 
@@ -43,14 +44,14 @@ fn main() ->Result<(), Box<dyn Error>>{
 }
 
 fn run_app<B: Backend>(
-    terminal: &mut Terminal<B>.
+    terminal: &mut Terminal<B>,
     app: &mut App,
 ) -> io::Result<bool>{
     loop {
         terminal.draw(|f| ui(f, app))?;
 
         if let Event::Key(key) = event::read()?{
-            if key.kind == event::KeyEventKind::Release{
+            if key.kind == KeyEventKind::Release{
                 continue;
             }
             match app.current_screen{
@@ -121,9 +122,10 @@ fn run_app<B: Backend>(
                                 }
                             }
                         }
+                        _ => {}
                     }
                 }
-
+                _ => {}
             }
 
 
