@@ -1,68 +1,65 @@
-use rand::Rng;
-#[derive(Debug, Default)]
+use std::collections::HashMap;
+use anyhow::Result;
+pub enum CurrentScreen{
+    Main,
+    Editing,
+    Exiting,
+}
+
+
+pub enum CurrentlyEditing{
+    Login,
+    Password,
+}
+
 pub struct App{
-    pub password: String,
-    pub exit: bool,
+    pub login_input: String,
+    pub password_input: String,
+    pub pairs: HashMap<String,String>,
+    pub current_screen: CurrentScreen,
+    pub currently_editing: Option<CurrentlyEditing>,
 }
-
-pub enum PasswordStrength{
-    LowerCase, //lower case letters
-    UpperCase, // lower case + upper case letters
-    Numbers, // upper + lower case  + numbers
-    Symbols //upper + lower + numbers + symbols
-}
-
 
 impl App{
-    pub fn new() -> Self{Self::default()
+    pub fn new() -> App{
+        App{
+            login_input: String::new(),
+            password_input: String::new(),
+            pairs: HashMap::new(),
+            current_screen: CurrentScreen::Main,
+            currently_editing: None,
+        }
     }
 
-    pub fn tick(&self) {}
-
-
-    pub fn quit(&mut self){
-        self.exit = true;
+    pub fn save_key_value(&mut self){
+        self.pairs
+            .insert(self.login_input.clone(), self.password_input.clone());
+        self.login_input = String::new();
+        self.password_input = String::new();
+        self.currently_editing = None;
     }
 
-    pub fn gen_pass(&mut self, pass_len: i32, pass_strength: PasswordStrength ){
-        self.password = generate_password(pass_len, pass_strength)
+    pub fn toggle_editing(&mut self){
+        if let Some(edit_mode) = &self.currently_editing{
+            match edit_mode {
+                CurrentlyEditing::Login => {
+                    self.currently_editing = Some(CurrentlyEditing::Login)
+                }
+                CurrentlyEditing::Password => {
+                    self.currently_editing = Some(CurrentlyEditing::Password)
+                }
+            };
+        }else {
+            self.currently_editing = Some(CurrentlyEditing::Login)
+        }
+    }
 
+    pub fn print_json(&self) -> Result<()>{
+        let output = serde_json::to_string(&self.pairs)?;
+        println!("{}", output);
+        Ok(())
     }
 
 
-
-
-}
-fn generate_password(pass_len: i32,pass_strength: PasswordStrength) -> String{
-
-    let mut rng = rand::thread_rng();
-    let password_set:&[u8] = match pass_strength {
-        PasswordStrength::LowerCase =>
-            b"abcdefghijklmnopqrstuwxyz"
-        ,
-        PasswordStrength::UpperCase =>
-            b"abcdefghijklmnopqrstuwvxyz\
-            ABCDEFGHIJKLMNOPQRSTUVWXYZ"
-        ,
-        PasswordStrength::Numbers =>
-            b"abcdefghijklmnopqrstuwvxyz\
-            ABCDEFGHIJKLMNOPQRSTUVWXYZ\
-            0123456789"
-        ,
-        PasswordStrength::Symbols =>
-            b"bcdefghijklmnopqrstuwvxyz\
-            ABCDEFGHIJKLMNOPQRSTUVWXYZ\
-            0123456789!@#$%^&*()_+-={}[]|:;<>,.?/"
-
-
-    };
-
-    let password: String = (0..pass_len)
-        .map(|_|{
-            let n = rng.gen_range(0..password_set.len());
-            password_set[n] as char
-        })
-        .collect();
-    return password
 
 }

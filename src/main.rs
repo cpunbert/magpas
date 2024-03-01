@@ -1,38 +1,139 @@
-pub mod app;
-pub mod event;
-pub mod ui;
-pub mod tui;
-pub mod update;
+use crossterm::event::{EnableMouseCapture, DisableMouseCapture, Event, KeyCode, KeyEventKind};
+use crossterm::{event, execute};
+use crossterm::terminal::{enable_raw_mode, disable_raw_mode, LeaveAlternateScreen, EnterAlternateScreen};
+use std::io;
+use ratatui::backend::{Backend, CrosstermBackend};
+use ratatui::Terminal;
+use serde::de::Error;
+use crate::app::{App, CurrentlyEditing, CurrentScreen};
 
-pub mod password;
+mod app;
 
-use app::App;
-use anyhow::Result;
-use std::io::stderr;
-use event::{Event, EventHandler};
-use ratatui::{backend::CrosstermBackend, Terminal};
-use tui::Tui;
-use update::update;
+mod ui;
+mod password;
+fn main() ->Result<(), Box<dyn Error>>{
+    enable_raw_mode()?;
+    let mut stderr = io::stderr();
+    execute!(stderr, EnterAlternateScreen, EnableMouseCapture)?;
 
+    let backend = CrosstermBackend::new(stderr);
+    let mut terminal = Terminal::new(backend)?;
 
-fn main() -> Result<()> {
     let mut app = App::new();
-    let backend = CrosstermBackend::new(stderr());
-    let terminal= Terminal::new(backend)?;
-    let events = EventHandler::new(250);
-    let mut tui = Tui::new(terminal, events);
-    tui.enter()?;
+    let res = run_app(&mut terminal, &mut app);
 
-    while !app.exit{
-        tui.draw(&mut app)?;
-        match tui.events.next()?{
-            Event::Tick =>{},
-            Event::Key(key_event) => update(&mut app, key_event),
-            Event::Mouse(_) => {},
-            Event::Resize(_,_) =>{},
+
+
+    disable_raw_mode()?;
+    execute!(
+        terminal.backend_mut(),
+        LeaveAlternateScreen,
+        DisableMouseCapture
+    )?;
+    terminal.show_cursor()?;
+
+    if let Ok(do_print) = res{
+        if do_print{
+            app.print_json()?;
+        }
+    } else if let Err(err) = res{
+        println!("{err:?}");
+    }
+    Ok(())
+}
+
+fn run_app<B: Backend>(
+    terminal: &mut Terminal<B>.
+    app: &mut App,
+) -> io::Result<bool>{
+    loop {
+        terminal.draw(|f| ui(f, app))?;
+
+        if let Event::Key(key) = event::read()?{
+            if key.kind == event::KeyEventKind::Release{
+                continue;
+            }
+            match app.current_screen{
+
+                CurrentScreen::Main => match key.code{
+                    KeyCode::Char('e') =>{
+                        app.current_screen = CurrentScreen::Editing;
+                        app.currently_editing = Some(CurrentlyEditing::Login);
+                    }
+                    KeyCode::Char('q') => {
+                        app.current_screen = CurrentScreen::Exiting;
+                    }
+                    _ => {}
+                },
+
+                CurrentScreen::Exiting => match key.code{
+                    KeyCode::Char('y') => {
+                        return Ok(true);
+                    }
+                    KeyCode::Char('n') | KeyCode::Char('q') =>{
+                        return Ok(false);
+                    }
+                    _ => {}
+                },
+                CurrentScreen::Editing if key.kind == KeyEventKind::Press =>{
+                    match key.code{
+                        KeyCode::Enter =>{
+                            if let Some(editing) = &app.currently_editing{ //the last field should be pass str if so -> generate password and then save
+                                match editing{
+                                    CurrentlyEditing::Login =>{
+                                        app.currently_editing = Some(CurrentlyEditing::Password);
+                                    }
+                                    CurrentlyEditing::Password =>{
+                                        app.save_key_value();
+                                        app.current_screen = CurrentScreen::Main;
+                                    }
+                                }
+                            }
+                        }
+                        KeyCode::Backspace =>{
+                            if let Some(editing) = &app.currently_editing{
+                                match editing{
+                                    CurrentlyEditing::Login =>{
+                                        app.login_input.pop();
+                                    }
+                                    CurrentlyEditing::Password => {
+                                        app.password_input.pop();
+                                    }
+                                }
+                            }
+                        }
+                        KeyCode::Esc =>{
+                            app.current_screen = CurrentScreen::Main;
+                            app.currently_editing = None;
+                        }
+                        KeyCode::Tab =>{
+                            app.toggle_editing();
+                        }
+                        KeyCode::Char(value) => {
+                            if let Some(editing) = &app.currently_editing{
+                                match editing{
+                                    CurrentlyEditing::Login =>{
+                                        app.login_input.push(value);
+                                    }
+                                    CurrentlyEditing::Password =>{
+                                        app.password_input.push(value);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+
+            }
+
+
+
+
+
         }
 
+
+
+
     }
-    tui.exit()?;
-    Ok(())
 }
